@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventory App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .status {
+            padding: 15px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            color: #155724;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Inventory Management System</h1>
+        <div class="status">
+            ✅ Website successfully deployed via GitHub Actions to S3
+        </div>
+        <p>This is the frontend for the COMP-3020 Inventory App project.</p>
+        <p>The backend consists of Lambda functions and API Gateway endpoints that manage inventory data in DynamoDB.</p>
+        
+        <h2>API Endpoints:</h2>
+        <ul>
+            <li><strong>GET</strong> /item - List all inventory items</li>
+            <li><strong>GET</strong> /item/{id} - Get specific item</li>
+            <li><strong>POST</strong> /item - Add new item</li>
+            <li><strong>DELETE</strong> /item/{id} - Delete item</li>
+            <li><strong>GET</strong> /location/{id} - Get items by location</li>
+        </ul>
+        
+        <p><em>Backend powered by AWS Lambda + API Gateway + DynamoDB</em></p>
+    </div>
+</body>
+</html>
