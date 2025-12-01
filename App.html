@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventory App</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { background: #007bff; color: white; padding: 8px 15px; border: none; margin: 5px; cursor: pointer; }
+        button.delete { background: #dc3545; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        input { padding: 5px; margin: 5px; width: 200px; }
+        .message { padding: 10px; margin: 10px 0; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1> Inventory Manager</h1>
+
+    <!-- View Inventory -->
+    <div class="section">
+        <h3>View All Items</h3>
+        <button onclick="loadItems()">Refresh Items</button>
+        <div id="itemsList"></div>
+    </div>
+
+    <!-- Add Item -->
+    <div class="section">
+        <h3>Add New Item</h3>
+        <input type="text" id="name" placeholder="Item Name"><br>
+        <input type="text" id="desc" placeholder="Description"><br>
+        <input type="number" id="qty" placeholder="Quantity"><br>
+        <input type="number" id="price" placeholder="Price" step="0.01"><br>
+        <input type="number" id="location" placeholder="Location ID"><br>
+        <button onclick="addItem()">Add Item</button>
+        <div id="addMsg"></div>
+    </div>
+
+    <!-- Delete Item -->
+    <div class="section">
+        <h3>Delete Item</h3>
+        <input type="text" id="deleteId" placeholder="Item ID to delete">
+        <button class="delete" onclick="deleteItem()">Delete</button>
+        <div id="deleteMsg"></div>
+    </div>
+
+    <script>
+        //  THIS is my ACTUAL API URL 
+        const API_URL = 'https://h6qqdkt9j3.execute-api.us-east-1.amazonaws.com/prod';
+
+        // Load all items
+        async function loadItems() {
+            try {
+                const response = await fetch(`${API_URL}/item`);
+                const items = await response.json();
+                
+                let html = '<table><tr><th>ID</th><th>Name</th><th>Description</th><th>Qty</th><th>Price</th><th>Location</th><th>Action</th></tr>';
+
+                items.forEach(item => {
+                    html += `<tr>
+                        <td>${item.item_id}</td>
+                        <td>${item.item_name}</td>
+                        <td>${item.item_description}</td>
+                        <td>${item.item_qty_on_hand}</td>
+                        <td>$${item.item_price}</td>
+                        <td>${item.location_id}</td>
+                        <td><button class="delete" onclick="quickDelete('${item.item_id}')">Delete</button></td>
+                    </tr>`;
+                });
+                
+                html += '</table>';
+                document.getElementById('itemsList').innerHTML = html;
+            } catch (error) {
+                document.getElementById('itemsList').innerHTML = '<div class="error">Error loading items</div>';
+            }
+        }
+
+        // Add new item
+        async function addItem() {
+            const itemData = {
+                item_name: document.getElementById('name').value,
+                item_description: document.getElementById('desc').value,
+                item_qty_on_hand: parseInt(document.getElementById('qty').value),
+                item_price: parseFloat(document.getElementById('price').value),
+                location_id: parseInt(document.getElementById('location').value)
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/item`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(itemData)
+                });
+
+                const result = await response.json();
+                
+                if (response.status === 201) {
+                    document.getElementById('addMsg').innerHTML = 
+                        `<div class="success"> Added! ID: ${result.item_id}</div>`;
+                    // Clear form
+                    document.getElementById('name').value = '';
+                    document.getElementById('desc').value = '';
+                    document.getElementById('qty').value = '';
+                    document.getElementById('price').value = '';
+                    document.getElementById('location').value = '';
+                    loadItems();
+                } else {
+                    document.getElementById('addMsg').innerHTML = 
+                        `<div class="error"> Error: ${result.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('addMsg').innerHTML = 
+                    `<div class="error"> Network error</div>`;
+            }
+        }
+
+        // Delete item
+        async function deleteItem() {
+            const itemId = document.getElementById('deleteId').value;
+            
+            if (!itemId) {
+                document.getElementById('deleteMsg').innerHTML = 
+                    '<div class="error"> Enter Item ID</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/item/${itemId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                
+                if (response.status === 200) {
+                    document.getElementById('deleteMsg').innerHTML =
+                        `<div class="success"> ${result.message}</div>`;
+                    document.getElementById('deleteId').value = '';
+                    loadItems();
+                } else {
+                    document.getElementById('deleteMsg').innerHTML =
+                        `<div class="error"> ${result.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('deleteMsg').innerHTML =
+                    `<div class="error"> Network error</div>`;
+            }
+        }
+
+        // Quick delete from table
+        async function quickDelete(itemId) {
+            if (confirm('Delete this item?')) {
+                try {
+                    const response = await fetch(`${API_URL}/item/${itemId}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    if (response.status === 200) {
+                        alert(' Item deleted!');
+                        loadItems();
+                    }
+                } catch (error) {
+                    alert('Delete failed');
+                }
+            }
+        }
+
+        // Load items when page opens
+        loadItems();
+    </script>
+</body>
+</html>
